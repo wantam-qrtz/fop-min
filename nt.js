@@ -58,6 +58,19 @@ auth.onAuthStateChanged(user => {
     }
     loadAnnouncements();
 });
+//login functionality
+function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    window.location.href = "index.html"; // Go to main page
+                })
+                .catch(error => {
+                    document.getElementById('error').innerText = error.message;
+                });
+        }
 
 // Load announcements from Firestore
 function loadAnnouncements() {
@@ -145,4 +158,5 @@ saveAnnouncementBtn.addEventListener('click', () => {
 // Prevent panel from closing when clicking inside it
 announcementPanel.addEventListener('click', (e) => {
     e.stopPropagation();
+
 });
