@@ -1,144 +1,91 @@
-// Initialize Firebase with your config
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM elements
+    const loginForm = document.getElementById('login');
+    const signupForm = document.getElementById('signup');
+    const loginError = document.getElementById('login-error');
+    const signupError = document.getElementById('signup-error');
+    const showSignup = document.getElementById('show-signup');
+    const showLogin = document.getElementById('show-login');
+    const loginFormContainer = document.getElementById('login-form');
+    const signupFormContainer = document.getElementById('signup-form');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const userEmailSpan = document.getElementById('user-email');
+    const logoutBtn = document.getElementById('logout-btn');
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDvzJKKnrby8kmsV6csVEXT3abCMZ3Riow",
-  authDomain: "sign-ffff3.firebaseapp.com",
-  projectId: "sign-ffff3",
-  storageBucket: "sign-ffff3.firebasestorage.app",
-  messagingSenderId: "461869144298",
-  appId: "1:461869144298:web:ba27f8716285ef197bdf93",
-  measurementId: "G-F87KDLQM4F"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-// DOM Elements
-const loginForm = document.getElementById('loginForm');
-const signupForm = document.getElementById('signupForm');
-const signUpBtn = document.getElementById('sign-up-btn');
-const signInBtn = document.getElementById('sign-in-btn');
-const signUpBtn2 = document.getElementById('sign-up-btn2');
-const signInBtn2 = document.getElementById('sign-in-btn2');
-const container = document.querySelector('.container');
-
-// Switch between sign in and sign up
-signUpBtn.addEventListener('click', () => {
-    container.classList.add('sign-up-mode');
-});
-
-signInBtn.addEventListener('click', () => {
-    container.classList.remove('sign-up-mode');
-});
-
-signUpBtn2.addEventListener('click', () => {
-    container.classList.add('sign-up-mode');
-});
-
-signInBtn2.addEventListener('click', () => {
-    container.classList.remove('sign-up-mode');
-});
-
-// Sign up
-signupForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const email = signupForm['signupEmail'].value;
-    const password = signupForm['signupPassword'].value;
-    const name = signupForm['signupName'].value;
-    
-    // Clear previous errors
-    clearErrors();
-    
-    // Validate password length
-    if (password.length < 6) {
-        showError(signupForm, 'Password must be at least 6 characters');
-        return;
-    }
-    
-    // Create user
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(cred => {
-            // Add user to Firestore
-            return db.collection('users').doc(cred.user.uid).set({
-                name: name,
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        })
-        .then(() => {
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        })
-        .catch(err => {
-            showError(signupForm, err.message);
-        });
-});
-
-// Login
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const email = loginForm['loginEmail'].value;
-    const password = loginForm['loginPassword'].value;
-    
-    // Clear previous errors
-    clearErrors();
-    
-    auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-            // Redirect to dashboard
-            window.location.href = 'dashboard.html';
-        })
-        .catch(err => {
-            showError(loginForm, err.message);
-        });
-});
-
-// Google login (optional)
-document.querySelectorAll('.social-icon').forEach(icon => {
-    icon.addEventListener('click', (e) => {
+    // Switch between login and signup forms
+    showSignup.addEventListener('click', function(e) {
         e.preventDefault();
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
-            .then(() => {
-                window.location.href = 'dashboard.html';
+        loginFormContainer.style.display = 'none';
+        signupFormContainer.style.display = 'block';
+        loginError.textContent = '';
+    });
+
+    showLogin.addEventListener('click', function(e) {
+        e.preventDefault();
+        signupFormContainer.style.display = 'none';
+        loginFormContainer.style.display = 'block';
+        signupError.textContent = '';
+    });
+
+    // Login
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Success
+                showWelcomeScreen(userCredential.user.email);
+                loginError.textContent = '';
             })
-            .catch(err => {
-                alert(err.message);
+            .catch((error) => {
+                loginError.textContent = error.message;
             });
     });
-});
 
-// Check auth state
-auth.onAuthStateChanged(user => {
-    if (user) {
-        // User is signed in
-        console.log('User logged in:', user);
-    } else {
-        // User is signed out
-        console.log('User logged out');
-    }
-});
-
-// Helper functions
-function showError(form, message) {
-    const errorElement = document.createElement('div');
-    errorElement.className = 'error';
-    errorElement.textContent = message;
-    form.appendChild(errorElement);
-}
-
-function clearErrors() {
-    document.querySelectorAll('.error').forEach(error => {
-        error.remove();
+    // Signup
+    signupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        
+        auth.createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Success
+                showWelcomeScreen(userCredential.user.email);
+                signupError.textContent = '';
+            })
+            .catch((error) => {
+                signupError.textContent = error.message;
+            });
     });
-}
+
+    // Logout
+    logoutBtn.addEventListener('click', function() {
+        auth.signOut().then(() => {
+            welcomeScreen.style.display = 'none';
+            loginFormContainer.style.display = 'block';
+            loginForm.reset();
+            signupForm.reset();
+        });
+    });
+
+    // Show welcome screen
+    function showWelcomeScreen(email) {
+        userEmailSpan.textContent = email;
+        loginFormContainer.style.display = 'none';
+        signupFormContainer.style.display = 'none';
+        welcomeScreen.style.display = 'block';
+    }
+
+    // Check auth state
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            showWelcomeScreen(user.email);
+        } else {
+            welcomeScreen.style.display = 'none';
+            loginFormContainer.style.display = 'block';
+        }
+    });
+});
